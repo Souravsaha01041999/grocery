@@ -1,0 +1,196 @@
+<html>
+    <head>
+        <title>CUSTOMER</title>
+        <script src="./comon/genqr.js"></script>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+
+        <style>
+            .mainholder
+            {
+                position:absolute;
+                left: 30%;
+                top: 100px;
+                width: max-content;
+            }
+        </style>
+    </head>
+    <body onload="initial()">
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+
+        <div class="header">
+            <div style="cursor: pointer;">CUSTOMER</div>
+        </div>
+
+        <div class="mainholder">
+            <p id="name" style="position: relative; left: 10%; color: black; font-size: 20px;"></p>
+            <img id="image" width="150" height="200"><br><br>
+            <div id="printView">
+                <div id="show_qr" width="200" height="200">
+
+                </div>
+                <div>
+                    <h1 style="color: black;">WelCome In Our Shop</h1>
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width: 100px;" onclick="prt()">Print</button>&nbsp;&nbsp;<button class="btn btn-primary" style="width: 100px;" onclick="pay()">PAY</button>
+            <br><br>
+            <div>
+                <div id="listHolder">
+
+                </div>
+                <p style="color: black; font-size: 20px;" id="total"></p>
+            </div>
+        </div>
+        <script>
+            var admin;
+            var cname;
+            var cid;
+            var cimage;
+            var totalHolder;
+            var total=0;
+            var listHolder;
+            var total=0;
+            var paying=false;
+
+            function initial()
+            {
+                totalHolder=document.getElementById("total");
+                listHolder=document.getElementById("listHolder");
+
+                admin=String(localStorage.getItem("userId"));
+                cname=String(localStorage.getItem("cname"));
+                cid=String(localStorage.getItem("cid"));
+                cimage=String(localStorage.getItem("cimage"));
+                localStorage.clear();
+                if(admin=="null")
+                {
+                    window.location.href="home.html";
+                }
+
+                document.getElementById("image").src=cimage;
+                document.getElementById("name").innerHTML=cname;
+
+                var sto=cid;
+                document.getElementById("show_qr").innerHTML="";
+                new QRCode(document.getElementById("show_qr"), {
+                    text: sto,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+                document.getElementById("show_qr").style.width="200px";
+                document.getElementById("show_qr").style.height="200px";
+                var http=new XMLHttpRequest();
+                http.onreadystatechange=function()
+                {
+                    if(http.status==200&&http.readyState==4)
+                    {
+                        clearList();
+                        var obj = JSON.parse(String(http.responseText).trim());
+                        for(var i=0;i<obj.length;i++)
+                        {
+                            createList(obj[i].prd_name,obj[i].prd_qun,obj[i].prd_unit,obj[i].pur_price);
+                            paying=true;
+                        }
+                        totalHolder.innerHTML="Total: "+total;
+                    }
+                };
+                http.open("POST", "./api/getpendings.php", true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send("cid="+cid);
+                
+            }
+
+            function prt()
+            {
+                var divElementContents = document.getElementById("printView").innerHTML;
+				var windows = window.open("", "", "height=600, width=600");
+				windows.document.write(divElementContents);
+ 				windows.document.close();
+ 				windows.print();
+            }
+
+            function clearList()
+            {
+                listHolder.innerHTML="";
+            }
+
+            function createList(pname,pqun,punit,pprice)
+            {
+                var list=document.createElement("a");
+                list.classList.add("list-group-item");
+                list.style.color="black";
+                list.style.cursor="pointer";
+                list.style.width="700px";
+                list.style.fontSize="25px";
+                var nameHolder=document.createElement("div");
+                nameHolder.innerHTML=pname+"- "+pqun+" "+punit+"------ RS:-"+pprice;
+                list.appendChild(nameHolder);
+                
+                total+=parseInt(pprice);
+                listHolder.appendChild(list);
+            }
+
+            function pay()
+            {
+                if(paying)
+                {
+                    setProgress("Paying","Please Wait...");
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status==200&&http.readyState==4)
+                        {
+                            setAlert(http.responseText);
+                            stopProgress();
+                        }
+                        else if(http.status==0&&http.readyState==4)
+                        {
+                            setAlert("Network Error");
+                            stopProgress();
+                        }
+                    };
+                    http.open("POST", "./api/pay.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("cid="+cid);
+                }
+                else{
+                    setAlert("No Payment");
+                }
+            }
+
+        </script>
+    </body>
+</html>

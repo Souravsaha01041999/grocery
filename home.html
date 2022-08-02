@@ -1,0 +1,180 @@
+<html>
+    <head>
+        <title>Home</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <style>
+            .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 2;
+            top: 0;
+            left: 0;
+            background-color: #494d4c;
+            overflow-x: hidden;
+            transition: 1s;
+            padding-top: 60px;
+        }
+
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidenav a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: red;
+        }
+
+        .box{
+            color: red;
+            position: relative;
+            min-height: 400px;
+            padding-bottom: 30px; /* to avoid content overlapping */
+            font-size: 50px;
+        }
+        .box .content{    
+            position: absolute;
+            bottom: 0;
+            left: 100;
+        }
+        </style>
+    </head>
+    <body onload="initial()">
+
+        <div id="mySidenav" class="sidenav">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <img src="./comon/profile_icon.png" style="height: 60px; width: 60pxs; border-radius: 50%; position: relative; left: 20px;">
+            <br><br>
+            <a onclick="additem()" style="color:white; font-size: 15px; cursor: pointer;">ADD ITEM OR UPDATE</a>
+            <br>
+            <a onclick="regcust()" style="color:white; font-size: 15px; cursor: pointer;">REGISTER CUSTOMER</a>
+            <br>
+            <a onclick="sellCst()" style="color:white; font-size: 15px; cursor: pointer;">SELL TO CUSTOMER</a>
+            <br>
+            <a onclick="cstList()" style="color:white; font-size: 15px; cursor: pointer;">LIST OF CUSTOMER</a>
+        </div>
+
+        <div class="header">
+            <span style="cursor:pointer" onclick="openNav()">&#9777; Open</span>
+            <span onclick="logout()" style="color: red; cursor: pointer; font-size: 38px; position: relative; float: right;" class="glyphicon glyphicon-log-out"></span>
+        </div>
+        <br>
+        <div style="width:max-content; font-size: 70px; color: black; position:absolute; left: 33%; top: 60px;">
+            <p id="adminShow"></p>
+            <img src="./comon/home_image.jpg" style="position: relative; right: 170px;" width="800" height="500">
+            <br>
+            <a style="position: relative; font-size: 20px; left: 10%; top: 10px; color: black;" href="mailto: sahasourav630@gmail.com">For customer support click here</a>
+        </div>
+
+        <script>
+        var userId="";
+        function initial()
+            {
+                var name="grc-userid=";
+                var dc=decodeURIComponent(document.cookie);
+                var co=dc.split(";");
+                var can=0;
+                for(var i=0;i<co.length;i++)
+                {
+                    var c=co[i];
+                    while(c.charAt(0)==' ')
+                    {
+                        c=c.substring(1);
+                    }
+                    if(c.indexOf(name)==0)
+                    {
+                        var cok=c.substring(name.length,c.length);
+                        if(cok=="system_stop")                      //FOR LOGOUT COMMAND
+                        {
+                            window.location.href="./index.html";
+                        }
+                        else
+                        {
+                            //GET DATAS
+                            userId=cok;
+                            document.getElementById("adminShow").innerHTML="Welcome "+userId;
+                        }
+                    }
+                    else{
+                        can++;
+                    }
+                }
+
+                if(co.length==can)
+                {
+                    window.location.href="./index.html";
+                }
+            }
+
+            function additem()
+            {
+                localStorage.setItem("userId",userId);
+                window.location.href="addItem.html";
+            }
+
+
+            function regcust()
+            {
+                localStorage.setItem("userId",userId);
+                window.location.href="regpage.html";
+            }
+
+            function cstList()
+            {
+                localStorage.setItem("userId",userId);
+                window.location.href="listcust.html";
+            }
+
+            function sellCst()
+            {
+                localStorage.setItem("userId",userId);
+                window.location.href="qrscan.html";
+            }
+
+
+            function logout()
+            {
+                var d=new Date();
+                d.setTime(d.getTime()+(24*60*60*1000));
+                document.cookie="grc-userid="+"system_stop"+"; expires="+d.toGMTString()+"; path=/";               //THIS IS GRC ID
+                window.location.href="./index.html";
+            }
+
+
+            function openNav() {
+                document.getElementById("mySidenav").style.width = "250px";
+            }
+
+            function closeNav() {
+                document.getElementById("mySidenav").style.width = "0";
+            }
+        </script>
+    </body>
+</html>

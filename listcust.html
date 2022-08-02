@@ -1,0 +1,169 @@
+<html>
+    <head>
+        <title>LIST CUSTOMER</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+        <style>
+            #holder
+            {
+                position: absolute;
+                width: max-content;
+                left: 40%;
+                top: 100px;
+
+            }
+        </style>
+    </head>
+    <body onload="initial()">
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+        <div class="header">
+            <div onclick="goback()" style="cursor: pointer;">LIST OF CUSTOMER</div>
+        </div>
+        <input type="text" id="cnamesearch" onkeyup="searchName()">
+
+        <div id="holder">
+
+        </div>
+
+        <script>
+            var admin;
+            var listHolder;
+            var cNameSearch;
+
+            var arr=[];
+            function initial()
+            {
+                cNameSearch=document.getElementById("cnamesearch");
+                listHolder=document.getElementById("holder");
+
+                admin=String(localStorage.getItem("userId"));
+                localStorage.clear();
+                if(admin=="null")
+                {
+                    window.location.href="home.html";
+                }
+                else
+                {
+                    var count=0;
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status==200&&http.readyState==4)
+                        {
+                            //HERE LIST WILL BE CREATE
+                            clearList();
+                            var obj = JSON.parse(String(http.responseText).trim());
+                            for(var i=0;i<obj.length;i++)
+                            {
+                                arr.push(obj[i].cust_id);
+                                arr.push(obj[i].cust_name);
+                                arr.push(obj[i].cust_image);
+                                createList(arr[count],arr[count+1],arr[count+2]);
+                                count+=3;
+                            }
+                        }
+                        else if(http.status==0&&http.readyState==4)
+                        {
+                            setAlert("Network Error");
+                        }
+                    };
+                    http.open("POST", "./api/getallcst.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("admin="+admin);
+                }
+            }
+
+            function clearList()
+            {
+                listHolder.innerHTML="";
+            }
+
+
+            function createList(cid,cname,cimage)
+            {
+                var list=document.createElement("a");
+                list.style.borderColor="black";
+                list.classList.add("list-group-item");
+                list.style.color="black";
+                list.style.cursor="pointer";
+                list.style.width="200px";
+                list.style.fontSize="25px";
+                list.style.padding="10px";
+                var img=document.createElement("img");
+                img.style.position="relative";
+                img.style.left="25%";
+                img.src=cimage;
+                img.style.width="100px";
+                img.style.height="140px";
+                list.appendChild(img);
+                var name=document.createElement("div");
+                name.style.position="relative";
+                name.style.left="20%";
+                name.style.fontSize="15px";
+                name.style.color="black";
+                name.style.width="150px";
+                name.innerHTML="Name: "+cname;
+                list.appendChild(name);
+                list.addEventListener("click",function()
+                {
+                    localStorage.setItem("userId",admin);
+                    localStorage.setItem("cname",cname);
+                    localStorage.setItem("cid",cid);
+                    localStorage.setItem("cimage",cimage);
+                    window.open("./showcst.html","_blank");
+                });
+                listHolder.appendChild(list);
+                var sp=document.createElement("div");
+                sp.style.height="10px";
+                listHolder.appendChild(sp);
+            }
+
+            function searchName()
+            {
+                clearList();
+                for(var i=0;i<arr.length;i+=3)
+                {
+                    if(String(arr[i+1]).toLowerCase().includes(cNameSearch.value.toLowerCase()))
+                    {
+                        createList(arr[i],arr[i+1],arr[i+2]);
+                    }
+                }
+            }
+
+            function goback()
+            {
+                window.location.href="./home.html";
+            }
+            
+        </script>
+    </body>
+</html>

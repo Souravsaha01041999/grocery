@@ -1,0 +1,173 @@
+<html>
+    <head>
+        <title>Register</title>
+        <script src="./comon/genqr.js"></script>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link rel="stylesheet" href="./comon/bootstrap.min.css">
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+
+
+        <style>
+            body{
+                background-color: rgb(205, 214, 223);
+            }
+            .holder
+            {
+                font-size: 20px;
+                position:absolute;
+                width: max-content;
+                padding: 30px;
+                border-radius: 10px;
+                background-color: white;
+                left: 37%;
+                top: 200px;
+                box-shadow: 5px 5px #888888;
+            }
+        </style>
+
+    </head>
+    <body onload="initial()">
+
+         <!--PROGRESS-->
+         <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+
+        <div class="header">
+            <font style="cursor: pointer;" onclick="backpage()">NEW CUSTOMER</font>
+        </div>
+
+        <div class="holder">
+
+            <div class="custom-file mb-3">
+                <input type="file" class="custom-file-input" id="f" name="filename" accept="image/*">
+                <label class="custom-file-label" for="f">Choose Image</label>
+            </div>
+
+            <br>
+            Name:<input type="text" style="width: 400px; font-size: 20px;" id="custname" placeholder="Name" class="form-control">
+            <br>
+            <button onclick="reg()" style="width: 400px; font-size: 20px;" class="btn btn-primary">Register</button>
+            <br>
+            <br>
+            <div style="visibility: hidden; position: relative; left: 15%;" id="dipsprint">
+                <div id="show_qr">
+
+                </div>
+                <div>
+                    <h1>WelCome In Our Shop</h1>
+                </div>
+            </div>
+            <button onclick="prt()" class="btn btn-primary" style="position: relative; font-size: 25px; left: 43%;">Print</button>
+        </div>
+
+        <script>
+            var admin;
+            var file;
+            var img;
+            var castname;
+            var id;
+            function initial()
+            {
+                file=document.getElementById("f");
+                img=document.getElementById("prev");
+                castname=document.getElementById("custname");
+
+                admin=String(localStorage.getItem("userId"));
+                localStorage.clear();
+                if(admin=="null")
+                {
+                    window.location.href="home.html";
+                }
+            }
+
+            function reg()
+            {
+                if(file.files.length>0&&String(castname.value).length>0)
+                {
+                    //CALL FILE UPLOAD API
+                    setProgress("Sending","Please Wait...");
+                    uploadFile(castname.value);
+                }
+                else{
+                    setAlert("Please Enter all Data");
+                }
+            }
+
+            async function uploadFile(uid) {
+                var formData = new FormData(); 
+                var d = new Date();
+                var day = String(d.getDate())+String(d.getMonth())+String(d.getFullYear())+String(d.getHours()) + String(d.getMinutes())+String(d.getSeconds());
+                id=day;
+                formData.append("file", file.files[0]);
+                formData.append("castid",day);
+                formData.append("castname",uid);
+                formData.append("admin",admin);
+                await fetch('./api/reg.php', {
+                    method: "POST", 
+                    body: formData
+                });
+                setAlert("Done");
+                stopProgress();
+                trg();
+            }
+
+            function trg()
+            {
+                
+                document.getElementById("dipsprint").style.visibility = "visible";
+                var sto=id;
+                document.getElementById("show_qr").innerHTML="";
+                new QRCode(document.getElementById("show_qr"), {
+                    text: sto,
+                    width: 300,
+                    height: 300,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+
+            function prt()
+            {
+                var divElementContents = document.getElementById("dipsprint").innerHTML;
+				var windows = window.open("", "", "height=600, width=600");
+				windows.document.write(divElementContents);
+ 				windows.document.close();
+ 				windows.print();
+            }
+
+            function backpage()
+            {
+                window.location.href="./home.html";
+            }
+            
+        </script>
+    </body>
+</html>

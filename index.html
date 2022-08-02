@@ -1,0 +1,142 @@
+<html>
+    <head>
+        <title>Login</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+        
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+
+        <style>
+            .frm
+            {
+                position:absolute;
+                top: 120px;
+                left: 32%;
+                padding: 40px;
+                background-color: white;
+                border-radius: 7px;
+                box-shadow: 5px 5px #888888;
+            }
+        </style>
+    </head>
+    <body onload="initial()">
+        <div class="header">
+            Admin Login
+        </div>
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+        <div class="frm">
+            <div style="position: relative; top: 50%; width: max-content;">
+                <img src="./comon/profile_icon.png" style="height: 60px; width: 60pxs; border-radius: 50%;">
+                <p style="position: relative; left: 19%; font-size: 40px;">Admin Login</p>
+                <p style="font-size: 25px; color: rgb(69, 64, 64);">User Id</p>
+                <input type="text" id="userid" class="form-control" style="width: 400px; font-size: 20px;" placeholder="User ID">
+                <br>
+                <p style="font-size: 25px; color: rgb(69, 64, 64);">Password</p>
+                <input type="password" id="userpassword" class="form-control" placeholder="Password" style="width: 400px; font-size: 20px;">
+                <br><br>
+                <button class="btn btn-primary" style="position: relative; width: 400px; font-size: 20px; box-shadow: 1px 3px #cbc6c6;" onclick="login()">LOGIN</button>
+                <br><br>
+                <a style="position: relative; left: 10%;" href="mailto: sahasourav630@gmail.com">Don't have an account click here to contact us</a>
+            </div>
+        </div>
+        <script>
+            function initial()
+            {
+                var name="grc-userid=";
+                var dc=decodeURIComponent(document.cookie);
+                var co=dc.split(";");
+                var can=0;
+                for(var i=0;i<co.length;i++)
+                {
+                    var c=co[i];
+                    while(c.charAt(0)==' ')
+                    {
+                        c=c.substring(1);
+                    }
+                    if(c.indexOf(name)==0)
+                    {
+                        var cok=c.substring(name.length,c.length);
+                        if(cok!="system_stop")                      //FOR LOGOUT COMMAND
+                        {
+                            window.location.href="./home.html";
+                        }
+                    }
+                    else{          
+                        can++;
+                    }
+                }
+            }
+
+
+            function login()
+            {
+                var userId=document.getElementById("userid");
+                var userPass=document.getElementById("userpassword");
+                if(String(userId.value).length>0&&String(userPass.value).length>0)
+                {
+                    setProgress("Login","Please Wait...");
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status==200&http.readyState==4)
+                        {
+                            if(String(http.responseText).trim()=="DONE")
+                            {                                                           //WHEN LOGON SUCCESS
+                                var d=new Date();
+                                d.setTime(d.getTime()+(24*60*60*1000));
+                                document.cookie="grc-userid="+userId.value+"; expires="+d.toGMTString()+"; path=/";               //THIS IS GRC ID
+                                window.location.href="./home.html";
+                                stopProgress();
+                            }
+                            else
+                            {
+                                setAlert("Data Error");
+                                userPass.value="";
+                                stopProgress();
+                            }
+                        }
+                        else if(http.status==0&&http.readyState==4)
+                        {
+                            setAlert("Network Error");
+                            stopProgress();
+                        }
+                    };
+                    http.open("POST", "./api/login.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("user="+userId.value+"&pass="+userPass.value);
+                }
+                else
+                {
+                    setAlert("Enter All Data");
+                }
+            }
+        </script>
+    </body>
+</html>

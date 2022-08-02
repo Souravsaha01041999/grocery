@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>QR SCAN</title>
+        <script src="./comon/scanner_sup1.js"></script>
+        <script src="./comon/scanner_sup2.js"></script>
+
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+        <style>
+            .holder
+            {
+                position: absolute;
+                width: max-content;
+                top: 20%;
+                left: 30%;
+            }
+        </style>
+    </head>
+    <body onload="initial()">
+        <div class="header">
+            <div onclick="goback()" style="cursor: pointer;">QR SCANNER</div>
+        </div>
+
+        <div class="holder">
+            <video id="videoShow"></video>
+            <br>
+            <p style="position: relative; color:red; left: 20%; font-size: 25px;" id="msg">Scan Customer Card</p>
+        </div>
+
+        <script>
+            var admin;
+            function initial()
+            {
+                admin=String(localStorage.getItem("userId"));
+                localStorage.clear();                
+                if(admin=="null")
+                {
+                    window.location.href="home.html";
+                }
+                else
+                {
+                    scanIt();
+                }
+            }
+
+            function scanIt()
+            {
+                var scanner = new Instascan.Scanner({ video: document.getElementById("videoShow") });
+                scanner.addListener("scan", function (content) {
+                    document.getElementById("msg").innerHTML="Please Wait";
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status==200&&http.readyState==4)
+                        {
+                            if(String(http.responseText).trim()=="1")
+                            {
+                                localStorage.setItem("userId",admin);
+                                localStorage.setItem("castId",String(content));
+                                window.location.href="sellpage.html";
+                            }
+                            else
+                            {
+                                document.getElementById("msg").innerHTML="Customer Not Found";
+                            }
+                        }
+                    };
+                    http.open("POST", "./api/sreachcst.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("cid="+String(content));
+
+                });
+
+                Instascan.Camera.getCameras().then(function (cameras) {
+                    
+                    if (cameras.length > 0) {
+                        scanner.start(cameras[0]);
+                    } else {
+                        setAlert("No cameras found.");
+                    }
+                }).catch(function (e) {
+                            
+                });                
+            }
+
+            function goback()
+            {
+                window.location.href="./home.html";
+            }
+
+        </script>
+    </body>
+</html>

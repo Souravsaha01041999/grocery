@@ -1,0 +1,209 @@
+<html>
+    <head>
+        <title>Products</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+        <style>
+            .holder
+            {
+                position: absolute;
+                top: 20%;
+                left: 35%;
+                
+            }
+        </style>
+
+    </head>
+    <body onload="initial()">
+
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+
+        <div class="header">
+            <div onclick="goback()" style="cursor: pointer;">ITEMS</div>
+        </div>
+
+        <div class="holder">
+            <div style="position: relative; width: max-content; left: 30%;">
+                <img id="cimageholder" width="150" height="200">
+                <br>
+                <p style="position: relative; left: 10%; color: black; font-size: 20px;" id="cNameHolder"></p>
+                <br>
+                <button onclick="genBill()" class="btn btn-primary">GENERATE BILL</button>
+            </div>
+            <br>
+            <br>
+            <input class="form-control" style="width: 400px; font-size: 25px;" placeholder="Search Item" type="text" id="searchPrd" onkeyup="searchItem()">
+            <br>
+            <div id="listHolder">
+
+            </div>
+        </div>
+
+        <script>
+            var admin;
+            var cId;
+            var cName;
+            var cImage;
+            var cImageHolder;
+            var cNameHolder;
+            var searchPrd;
+            var listHolder;
+            var arr=[];
+            var count=0;
+            var cart="";
+            function initial()
+            {
+                cImageHolder=document.getElementById("cimageholder");
+                cNameHolder=document.getElementById("cNameHolder");
+                searchPrd=document.getElementById("searchPrd");
+                listHolder=document.getElementById("listHolder");
+
+                admin=String(localStorage.getItem("userId"));
+                cId=localStorage.getItem("castId");
+                localStorage.clear();                
+                if(admin=="null")
+                {
+                    window.location.href="home.html";
+                }
+                else
+                {
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status=200&&http.readyState==4)
+                        {
+                            var obj = JSON.parse(String(http.responseText).trim());
+                            cName=obj[0].cust_name;
+                            cImage=obj[0].cust_image;
+                            cNameHolder.innerHTML=cName;
+                            cImageHolder.src=cImage;
+                        }
+                    };
+                    http.open("POST", "./api/getcast.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("cid="+cId);
+                    getAllItems();
+                }
+            }
+
+            function getAllItems()
+            {
+                clearList();
+                var http=new XMLHttpRequest();
+                http.onreadystatechange=function()
+                {
+                    if(http.status==200&&http.readyState==4)
+                    {
+                        var obj = JSON.parse(String(http.responseText).trim());
+                        for(var i=0;i<obj.length;i++)
+                        {
+                            arr.push(obj[i].prd_name);
+                            arr.push(obj[i].prd_qun);
+                            arr.push(obj[i].prd_unit);
+                            arr.push(obj[i].prd_price);
+                            createList(arr[count],arr[count+1],arr[count+2],arr[count+3]);
+                            count+=4;
+                        }
+                    }
+                };
+                http.open("POST","./api/getappproduct.php",true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send("admin="+admin);
+            }
+
+            function clearList()
+            {
+                count=0;
+                listHolder.innerHTML="";
+            }
+
+            function createList(name,qun,unit,price)
+            {
+                var list=document.createElement("a");
+                list.classList.add("list-group-item");
+                list.style.color="black";
+                list.style.cursor="pointer";
+                list.style.width="400px";
+                list.style.fontSize="25px";
+                var nameHolder=document.createElement("div");
+                nameHolder.innerHTML=name;
+                list.appendChild(nameHolder);
+                var qunHolder=document.createElement("div");
+                qunHolder.innerHTML=qun+" "+unit;
+                list.appendChild(qunHolder);
+                var priceHolder=document.createElement("div");
+                priceHolder.innerHTML="Rs:- "+price;
+                list.appendChild(priceHolder);
+                list.addEventListener("click",function()
+                {
+                    //HERE QUENTITY WILL ASK THEN AFTER ENTER IT WILL ADD
+                    var equn=parseInt(prompt("Enter Quentity"));
+                    if(parseInt(qun)>=equn)
+                    {
+                        cart=cart+name+","+String(equn)+","+unit+","+String(price)+",";
+                    }
+                    else
+                    {
+                        setAlert("Not Avilabel");
+                    }
+                });
+                listHolder.appendChild(list);
+            }
+
+            function searchItem()
+            {
+                clearList();
+                for(var i=0;i<arr.length;i=i+4)
+                {
+                    if(String(arr[i]).toLowerCase().includes(searchPrd.value.toLowerCase()))
+                    {
+                        createList(arr[i],arr[i+1],arr[i+2],arr[i+3]);
+                    }
+                }
+            }
+
+            function goback()
+            {
+                window.location.href="./home.html";
+            }
+
+            function genBill()
+            {
+                //FOR CLICK THIS BUTTON BILL WILL GENARATE INTO NEXT PAGE
+                localStorage.setItem("cart",cart);
+                localStorage.setItem("cid",cId);
+                localStorage.setItem("cname",cName);
+                window.location.href="./finalbill.html";
+            }
+        </script>
+    </body>
+</html>

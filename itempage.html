@@ -1,0 +1,192 @@
+<html>
+    <head>
+        <title>ITEM</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+
+        <style>
+            .holder
+            {
+                color: black;
+                font-size: 20px;
+                position:absolute;
+                width: max-content;
+                padding: 30px;
+                border-radius: 10px;
+                background-color: white;
+                left: 37%;
+                top: 200px;
+                box-shadow: 5px 5px #888888;
+            }
+        </style>
+
+    </head>
+    <body onload="initial()">
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+
+        <div class="header">
+            ITEM
+        </div>
+
+        <div class="holder">
+            <font style="position: relative; left: 30%; font-size: 25px; color: black;">Your Item</font><br>
+            Item Name: <input type="text" id="itemName" placeholder="Item Name" style="width: 300px;" class="form-control"><br>
+            Quentity: <input type="number" id="itemQun" placeholder="Item Quentity" class="form-control" style="width: 300px;">
+            <div class="form-check form-check-inline" style="position: relative; left: 27%;">
+                <input type="radio" class="form-check-input" name="item" id="kg" value="kg">
+                <label class="form-check-label" for="kg"> kg </label>
+
+                <input type="radio" class="form-check-input" name="item" id="lt" value="lt">
+                <label class="form-check-label" for="lt"> lt </label>
+                
+                <input type="radio" class="form-check-input" name="item" id="pis" value="pis">
+                <label class="form-check-label" for="pis"> pis </label>
+            </div>
+            Price:
+            <input type="number" placeholder="Item Price" id="itemPrice" class="form-control" style="width: 300px;">
+            <br>
+            <button class="btn btn-primary" style="width: 300px;" onclick="sendMyData()">Submit</button>
+        </div>
+
+        <script>
+            var isSubmit=true;
+            var admin;
+            var itemName;
+            var itemQun;
+            var itemUnit;
+            var itemPrice;
+
+            var itemNameText,itemqunText,itemKg,itemLt,itemPis,itemPriceText;
+            function initial()
+            {
+                itemNameText=document.getElementById("itemName");
+                itemqunText=document.getElementById("itemQun");
+                itemPriceText=document.getElementById("itemPrice");
+                itemKg=document.getElementById("kg");
+                itemLt=document.getElementById("lt");
+                itemPis=document.getElementById("pis");
+
+                admin=String(localStorage.getItem("admin"));
+                itemName=String(localStorage.getItem("itemname"));
+                itemQun=String(localStorage.getItem("itemquan"));
+                itemUnit=String(localStorage.getItem("itemunit"));
+                itemPrice=String(localStorage.getItem("itemprice"));
+                localStorage.clear();
+                if(admin!="null")
+                {
+                    if(itemName!="null")
+                    {
+                        isSubmit=false;
+                        itemNameText.value=itemName;
+                        itemNameText.disabled=true;
+                        itemqunText.value=itemQun;
+                        itemPriceText.value=itemPrice;
+                        if(itemUnit=="kg")
+                        {
+                            itemKg.checked=true;
+                        }
+                        else if(itemUnit=="lt")
+                        {
+                            itemLt.checked=true;
+                        }
+                        else if(itemUnit=="pis")
+                        {
+                            itemPis.checked=true;
+                        }
+                    }
+                }
+                else
+                {
+                    window.location.href="home.html";
+                }
+            }
+
+            function sendMyData()
+            {
+                //HERE WILL BE SEND DATA TO API BUY PUSSING MODE 'insert' FOR INSERT AND 'update' FOR CHANGE DATA
+                if(String(itemNameText.value).length>0&&String(itemqunText.value).length>0&&String(itemPriceText.value).length>0&&(itemKg.checked||itemLt.checked||itemPis.checked))
+                {
+                    setProgress("Sending","Please Wait...");
+                    var unit;
+                    var mode;
+                    if(itemKg.checked)
+                    {
+                        unit=itemKg.value;
+                    }
+                    else if(itemLt.checked)
+                    {
+                        unit=itemLt.value;
+                    }
+                    else{
+                        unit=itemPis.value;
+                    }
+
+                    if(isSubmit)
+                    {
+                        mode="insert";
+                    }
+                    else
+                    {
+                        mode="update";
+                    }
+                    var http=new XMLHttpRequest();
+                    http.onreadystatechange=function()
+                    {
+                        if(http.status==200&&http.readyState==4)
+                        {
+                            setAlert("Done");
+                            itemNameText.value="";
+                            itemqunText.value="";
+                            itemPriceText.value="";
+
+                            stopProgress();
+
+                        }
+                        else if(http.status==0&&http.readyState==4)
+                        {
+                            setAlert("Network Error");
+                            stopProgress();
+                        }
+                    };
+                    http.open("POST", "./api/addupdate.php", true);
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                    http.send("mode="+mode+"&admin="+admin+"&itemname="+itemNameText.value+"&itemqun="+itemqunText.value+"&itemunit="+unit+"&itemprice="+itemPriceText.value);
+                }
+                else
+                {
+                    setAlert("Please Enter All Data");
+                }
+            }
+
+        </script>
+    </body>
+</html>

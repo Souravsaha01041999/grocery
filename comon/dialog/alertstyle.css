@@ -1,0 +1,15 @@
+#alertStyle
+            {
+                visibility:hidden;
+                position: absolute;
+                background-color: #494d4c;
+                border: solid;
+                border-color: #702e2e;
+                top: 40%;
+                left: 40%;
+                width: max-content;
+                padding: 20px;
+                box-shadow: 5px 5px #d2cbcb;
+                border-radius: 5px;
+                z-index: 8;
+            }

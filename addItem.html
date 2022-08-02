@@ -1,0 +1,195 @@
+<html>
+    <head>
+        <title>Items</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+        
+        <style>
+            .floating
+            {
+                position:fixed;
+                z-index: 5;
+                width: max-content;
+                height: max-content;
+                left: 90%;
+                top: 85%;
+                background-color: #494d4c;
+                border: solid;
+                border-color: #b57c8b;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body onload="initial()">
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+        <div class="header">
+            <div onclick="goback()" style="cursor: pointer;">ITEMS</div>
+        </div>
+        <br><br><br><br>
+        <p align="center" style="font-size: 30px;" id="showId"></p>
+        <div>
+            <input type="text" id="itemName" placeholder="Search Item" class="form-control" style="padding: 20px; position: relative; left: 37%; font-size: 25px; width: 400px; color: black;" onkeyup="searchItem()">
+            <br>
+            <div id="listHolder" class="list-group" style="position: relative; left: 37%; width: max-content;">
+
+            </div>
+        </div>
+        
+        <br>
+
+        <div class="floating" onclick="addNewItem()">
+            <!--FLOATING BUTTON-->
+            <div style="font-size:35px;color:#edf2f4; border-radius: 50%;">&ensp;+&ensp;</div>
+        </div>
+        
+        <script>
+            var userId;
+            var listholder;
+            var arr=[];
+            var count=0;
+            var searchBox;
+            function initial()
+            {
+                listholder=document.getElementById("listHolder");
+                searchBox=document.getElementById("itemName");
+                userId=String(localStorage.getItem("userId"));
+                localStorage.clear();
+                if(userId!="null")
+                {
+                    document.getElementById("showId").innerHTML=userId;
+                    //GET ALL PRODUCT
+                    getAllItems();
+                }
+                else
+                {
+                    window.location.href="home.html";
+                }
+            }
+
+            function getAllItems()
+            {
+                clearList();
+                var http=new XMLHttpRequest();
+                http.onreadystatechange=function()
+                {
+                    if(http.status==200&&http.readyState==4)
+                    {
+                        var obj = JSON.parse(String(http.responseText).trim());
+                        for(var i=0;i<obj.length;i++)
+                        {
+                            arr.push(obj[i].prd_name);
+                            arr.push(obj[i].prd_qun);
+                            arr.push(obj[i].prd_unit);
+                            arr.push(obj[i].prd_price);
+                            createList(arr[count],arr[count+1],arr[count+2],arr[count+3]);
+                            count+=4;
+                        }
+                    }
+                    else if(http.status==0&&http.readyState==4)
+                    {
+                        setAlert("Network Error");
+                    }
+                };
+                http.open("POST","./api/getappproduct.php",true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send("admin="+userId);
+            }
+
+            function clearList()
+            {
+                count=0;
+                listholder.innerHTML="";
+            }
+
+            function createList(name,qun,unit,price)
+            {
+                var list=document.createElement("a");
+                list.classList.add("list-group-item");
+                list.style.color="black";
+                list.style.cursor="pointer";
+                list.style.width="400px";
+                list.style.fontSize="25px";
+                var nameHolder=document.createElement("div");
+                nameHolder.style.width="400px";
+                nameHolder.innerHTML="Product: "+name;
+                list.appendChild(nameHolder);
+                var qunHolder=document.createElement("div");
+                qunHolder.style.width="max-content";
+                qunHolder.innerHTML=qun+" "+unit;
+                list.appendChild(qunHolder);
+                var priceHolder=document.createElement("div");
+                priceHolder.innerHTML="Rs:- "+price;
+                priceHolder.style.width="max-content";
+                list.appendChild(priceHolder);
+                list.addEventListener("click",function()
+                {
+                    localStorage.setItem("admin",userId);
+                    localStorage.setItem("itemname",name);
+                    localStorage.setItem("itemquan",qun);
+                    localStorage.setItem("itemunit",unit);
+                    localStorage.setItem("itemprice",price);
+                    window.open("./itempage.html","_blank");
+                });
+                
+                listholder.appendChild(list);
+                var sp=document.createElement("div");
+                sp.style.position="relative";
+                sp.style.height="30px";
+                listholder.appendChild(sp);
+            }
+
+            function searchItem()
+            {
+                clearList();
+                for(var i=0;i<arr.length;i=i+4)
+                {
+                    if(String(arr[i]).toLowerCase().includes(searchBox.value.toLowerCase()))
+                    {
+                        createList(arr[i],arr[i+1],arr[i+2],arr[i+3]);
+                    }
+                }
+            }
+
+            function addNewItem()
+            {
+                localStorage.setItem("admin",userId);
+                window.open("./itempage.html","_blank");
+            }
+
+            function goback()
+            {
+                window.location.href="./home.html";
+            }
+        </script>
+    </body>
+</html>

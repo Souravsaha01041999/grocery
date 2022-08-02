@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <title>BILL</title>
+        <link href="./bootstrap/css/bootstrap-theme.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap-theme.min.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.css.map" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="./bootstrap/css/bootstrap.min.css.map" rel="stylesheet">
+        <link href="./comon/bodystyle.css" rel="stylesheet">
+        <link href="./comon/headerstyle.css" rel="stylesheet">
+
+        <script src="./bootstrap/js/bootstrap.js"></script>
+        <script src="./bootstrap/js/bootstrap.min.js"></script>
+        <script src="./bootstrap/js/npm.js"></script>
+
+        <link href="./comon/dialog/alertstyle.css" rel="stylesheet">
+        <link href="./comon/dialog/progress.css" rel="stylesheet">
+        <script src="./comon/dialog/alertstyle.js"></script>
+        <script src="./comon/dialog/blockcode.js"></script>
+        <script src="./comon/dialog/progress.js"></script>
+    </head>
+    <body onload="initial()">
+
+        <!--PROGRESS-->
+        <div id="progress">
+            <font id="title"></font>
+            <img src="./comon/dialog/loading_icon.png" id="imgicon" style="position: relative; top: 70px;" width="40" height="40">
+            <font id="mytext"></font>
+        </div>
+        <!--END PROGRESS-->
+        <!--ALERT-->
+        <div id="alertStyle">
+            <font id="text" style="font-size: 20px; color: white;"></font>
+        </div>
+        <!--END ALEERT-->
+
+        <div class="header">
+            <div onclick="goback()" style="cursor: pointer;">BILL</div>
+        </div>
+
+        <div  style="width: max-content; position: absolute; top: 200px; left: 30px;">
+            <div id="printView">
+            <p id="cNameHolder" style="position: relative; left: 40%; font-size: 25px; color: black;"></p>
+            Bill:
+            <div id="listHolder">
+
+            </div>
+            <br>
+            <p style="position: relative; font-size: 25px; color: black;" id="total"></p>
+        </div>
+            <button onclick="prsd()" style="width: 100px;" class="btn btn-primary">Proceed</button>
+            <br>
+            <br>
+            <button onclick="prt()" style="width: 100px;" class="btn btn-primary">PRINT</button>
+        </div>
+
+        <script>
+            var cart;
+            var cName;
+            var cId;
+            var listHolder;
+            var printView;
+            var totalHolder;
+            var cNameHolder;
+            var total=0;
+            arr=[];
+
+            function initial()
+            {
+                listHolder=document.getElementById("listHolder");
+                printView=document.getElementById("printView");
+                totalHolder=document.getElementById("total");
+                cNameHolder=document.getElementById("cNameHolder");
+
+                cart=String(localStorage.getItem("cart"));
+                cId=String(localStorage.getItem("cid"));
+                cName=String(localStorage.getItem("cname"));
+                localStorage.clear();
+                if(cart=="null")
+                {
+                    window.location.href="./home.html";
+                }
+                else
+                {
+                    arr=cart.split(",");
+                    cNameHolder.innerHTML=cName;
+                    clearList();
+                    for(var i=0;i<arr.length-1;i+=4)
+                    {
+                        createList(arr[i],arr[i+1],arr[i+2],arr[i+3]);                         
+                    }
+                    totalHolder.innerHTML="Total: "+total;
+                }
+            }
+
+            function clearList()
+            {
+                listHolder.innerHTML="";
+            }
+
+            function createList(pname,pqun,punit,pprice)
+            {
+                var list=document.createElement("a");
+                list.classList.add("list-group-item");
+                list.style.color="black";
+                list.style.cursor="pointer";
+                list.style.width="700px";
+                list.style.fontSize="25px";
+                var pNameHolder=document.createElement("div");
+                pNameHolder.innerHTML=pname+"- "+pqun+" "+punit+"--------Rs:- "+parseInt(pprice)*parseInt(pqun);
+                list.appendChild(pNameHolder);
+                total+=parseInt(pprice)*parseInt(pqun);
+                listHolder.appendChild(list);
+            }
+
+            function prsd()
+            {
+                //API WILL CALL AND UPDATE ON DATABASE
+                setProgress("Processing","Please Wait...");
+                var http=new XMLHttpRequest();
+                http.onreadystatechange=function()
+                {                    
+                    if(http.status==200&http.readyState==4)
+                    {
+                        setAlert(http.responseText);
+                        stopProgress();
+                    }
+                    else if(http.status==0&&http.readyState==4)
+                    {
+                        setAlert("Network Error");
+                        stopProgress();
+                    }
+                };
+                http.open("POST", "./api/updateorder.php", true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send("cid="+cId+"&cart="+cart);
+            }
+
+            function prt()
+            {
+                //HERE PRINT ACTION WILL HAPPEN.
+                var divElementContents = document.getElementById("printView").innerHTML;
+				var windows = window.open("", "", "height=600, width=600");
+				windows.document.write(divElementContents);
+ 				windows.document.close();
+ 				windows.print();
+            }
+            function goback()
+            {
+                window.location.href="./home.html";
+            }
+        </script>
+    </body>
+</html>
